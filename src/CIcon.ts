@@ -87,6 +87,7 @@ const CIcon = defineComponent({
               '" is not registered in icons object. For CIcon docs visit https://coreui.io/vue/docs/components/icon.html',
           )
         }
+        console.log(icon)
         return icon
       }
     })()
@@ -103,7 +104,7 @@ const CIcon = defineComponent({
     }
 
     const classNames = (() => {
-      return props.customClasses || ['icon', { [`icon-${size()}`]: size() }]
+      return [props.customClasses || ['icon', { [`icon-${size()}`]: size() }], attrs.class]
     })()
 
     return () => [
