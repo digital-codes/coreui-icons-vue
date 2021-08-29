@@ -1,23 +1,47 @@
-import { defineComponent, h, inject } from 'vue'
+import { computed, defineComponent, h, inject, PropType } from 'vue'
 
 const CIcon = defineComponent({
   name: 'CIcon',
   props: {
+    /**
+     * Use `:icon="..."` instead of
+     *
+     * @deprecated since version 3.0
+     */
     content: {
       type: [String, Array],
       default: undefined,
       required: false,
     },
-    customClasses: {
+    /**
+     * Use for replacing default CIcon component classes. Prop is overriding the 'size' prop.
+     */
+    customClassName: {
       type: [String, Array, Object],
       default: undefined,
       required: false,
     },
+    /**
+     * Name of the icon placed in React object or SVG content.
+     */
+    icon: {
+      type: [String, Array] as PropType<string | string[]>,
+      default: undefined,
+      required: false,
+    },
+    /**
+     * Use `icon="..."` instead of
+     *
+     * @deprecated since version 3.0
+     */
     name: {
       type: String,
       default: undefined,
       required: false,
     },
+    /**
+     * Size of the icon. Available sizes: 'sm', 'lg', 'xl', 'xxl', '3xl...9xl', 'custom', 'custom-size'.
+     */
     size: {
       type: String,
       default: undefined,
@@ -40,16 +64,17 @@ const CIcon = defineComponent({
         ].includes(value)
       },
     },
-    src: {
-      type: String,
-      default: undefined,
-      required: false,
-    },
+    /**
+     * Title tag content.
+     */
     title: {
       type: String,
       default: undefined,
       required: false,
     },
+    /**
+     * If defined component will be rendered using 'use' tag.
+     */
     use: {
       type: String,
       default: undefined,
@@ -58,7 +83,24 @@ const CIcon = defineComponent({
   },
   setup(props, { attrs }) {
     const icons: any = inject('icons')
-    console.log(icons)
+    const _icon = props.icon || props.content || props.name
+
+    // if (props.content) {
+    //   process &&
+    //     process.env &&
+    //     process.env.NODE_ENV === 'development' &&
+    //     console.warn(
+    //       '[CIcon] The `content` property is deprecated and will be removed in v3, please use `icon={...}` instead of.',
+    //     )
+    // }
+    // if (props.name) {
+    //   process &&
+    //     process.env &&
+    //     process.env.NODE_ENV === 'development' &&
+    //     console.warn(
+    //       '[CIcon] The `name` property is deprecated and will be removed in v3, please use `icon="..."` instead of.',
+    //     )
+    // }
 
     const toCamelCase = (str: string) => {
       return str
@@ -68,33 +110,23 @@ const CIcon = defineComponent({
         .replace(/-/gi, '')
     }
 
-    const iconName = (() => {
-      const iconNameIsKebabCase = props.name && props.name.includes('-')
-      return iconNameIsKebabCase ? props.name && toCamelCase(props.name) : props.name
-    })()
+    const iconName = computed(() =>
+      _icon && typeof _icon === 'string' ? (_icon.includes('-') ? toCamelCase(_icon) : _icon) : '',
+    )
 
-    const titleCode = props.title ? `<title>${props.title}</title>` : ''
+    const titleCode = props.title ? `<title>${props.title}</title>` : 'undefined'
 
-    const code = (() => {
-      if (props.content) {
-        return props.content
-      } else if (icons) {
-        const icon = iconName && icons[iconName]
-        if (!icon && process && process.env && process.env.NODE_ENV === 'development') {
-          console.error(
-            'CIcon: "' +
-              iconName +
-              '" is not registered in icons object. For CIcon docs visit https://coreui.io/vue/docs/components/icon.html',
-          )
-        }
-        console.log(icon)
-        return icon
-      }
-    })()
+    const code = computed(() =>
+      Array.isArray(_icon)
+        ? _icon
+        : typeof _icon === 'string' && iconName.value && icons[iconName.value]
+        ? icons[iconName.value]
+        : 'undefined',
+    )
 
-    const iconCode = Array.isArray(code) ? code[1] || code[0] : code
+    const iconCode = Array.isArray(code.value) ? code.value[1] || code.value[0] : code.value
 
-    const scale = Array.isArray(code) && code.length > 1 ? code[0] : '64 64'
+    const scale = Array.isArray(code.value) && code.value.length > 1 ? code.value[0] : '64 64'
 
     const viewBox = attrs.viewBox || `0 0 ${scale}`
 
@@ -104,41 +136,62 @@ const CIcon = defineComponent({
     }
 
     const classNames = (() => {
-      return [props.customClasses || ['icon', { [`icon-${size()}`]: size() }], attrs.class]
+      return [props.customClassName || ['icon', { [`icon-${size()}`]: size() }], attrs.class]
     })()
 
-    return () => [
-      !props.src &&
-        !props.use &&
-        h('svg', {
-          ...attrs,
-          xmlns: 'http://www.w3.org/2000/svg',
-          class: classNames,
-          viewBox: viewBox,
-          innerHTML: `${titleCode}${iconCode}`,
-          role: 'img',
-        }),
-      props.src &&
-        !props.use &&
-        h('img', {
-          ...attrs,
-          class: classNames,
-          src: props.src,
-          role: 'img',
-        }),
-      !props.src &&
-        props.use &&
-        h(
-          'svg',
-          {
+    return () =>
+      props.use
+        ? h(
+            'svg',
+            {
+              ...attrs,
+              xmlns: 'http://www.w3.org/2000/svg',
+              class: classNames,
+              role: 'img',
+            },
+            h('use', { href: props.use }),
+          )
+        : h('svg', {
             ...attrs,
             xmlns: 'http://www.w3.org/2000/svg',
             class: classNames,
+            viewBox: viewBox,
+            innerHTML: `${titleCode}${iconCode}`,
             role: 'img',
-          },
-          h('use', { href: props.use }),
-        ),
-    ]
+          })
+
+    // return () => [
+    //   !props.src &&
+    //     !props.use &&
+    //     h('svg', {
+    //       ...attrs,
+    //       xmlns: 'http://www.w3.org/2000/svg',
+    //       class: classNames,
+    //       viewBox: viewBox,
+    //       innerHTML: `${titleCode}${iconCode}`,
+    //       role: 'img',
+    //     }),
+    //   props.src &&
+    //     !props.use &&
+    //     h('img', {
+    //       ...attrs,
+    //       class: classNames,
+    //       src: props.src,
+    //       role: 'img',
+    //     }),
+    //   !props.src &&
+    //     props.use &&
+    //     h(
+    //       'svg',
+    //       {
+    //         ...attrs,
+    //         xmlns: 'http://www.w3.org/2000/svg',
+    //         class: classNames,
+    //         role: 'img',
+    //       },
+    //       h('use', { href: props.use }),
+    //     ),
+    // ]
   },
 })
 export { CIcon }
