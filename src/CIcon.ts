@@ -85,23 +85,6 @@ const CIcon = defineComponent({
     const icons: any = inject('icons')
     const _icon = props.icon || props.content || props.name
 
-    // if (props.content) {
-    //   process &&
-    //     process.env &&
-    //     process.env.NODE_ENV === 'development' &&
-    //     console.warn(
-    //       '[CIcon] The `content` property is deprecated and will be removed in v3, please use `icon={...}` instead of.',
-    //     )
-    // }
-    // if (props.name) {
-    //   process &&
-    //     process.env &&
-    //     process.env.NODE_ENV === 'development' &&
-    //     console.warn(
-    //       '[CIcon] The `name` property is deprecated and will be removed in v3, please use `icon="..."` instead of.',
-    //     )
-    // }
-
     const toCamelCase = (str: string) => {
       return str
         .replace(/([-_][a-z0-9])/gi, ($1) => {
@@ -159,39 +142,6 @@ const CIcon = defineComponent({
             innerHTML: `${titleCode}${iconCode}`,
             role: 'img',
           })
-
-    // return () => [
-    //   !props.src &&
-    //     !props.use &&
-    //     h('svg', {
-    //       ...attrs,
-    //       xmlns: 'http://www.w3.org/2000/svg',
-    //       class: classNames,
-    //       viewBox: viewBox,
-    //       innerHTML: `${titleCode}${iconCode}`,
-    //       role: 'img',
-    //     }),
-    //   props.src &&
-    //     !props.use &&
-    //     h('img', {
-    //       ...attrs,
-    //       class: classNames,
-    //       src: props.src,
-    //       role: 'img',
-    //     }),
-    //   !props.src &&
-    //     props.use &&
-    //     h(
-    //       'svg',
-    //       {
-    //         ...attrs,
-    //         xmlns: 'http://www.w3.org/2000/svg',
-    //         class: classNames,
-    //         role: 'img',
-    //       },
-    //       h('use', { href: props.use }),
-    //     ),
-    // ]
   },
 })
 export { CIcon }
